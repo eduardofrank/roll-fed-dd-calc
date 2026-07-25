@@ -2,7 +2,7 @@
 
 WordPress plugin for [ArtMedia Studio](https://artmedia.studio) that embeds roll-fed print pricing calculators for **Archival Fine Art** and **Inkjet** on any page and routes configured orders through WooCommerce.
 
-**Current version:** 2.23.1 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-calc](https://github.com/eduardofrank/roll-fed-calc)
+**Current version:** 2.23.1 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
 
 ## Requirements
 
