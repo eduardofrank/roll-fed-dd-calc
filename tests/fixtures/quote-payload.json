@@ -1,0 +1,42 @@
+{
+  "_comment": "The contract between fac_quote_build_js_payload() (PHP) and assets/data-bridge.js. QuoteLinksTest asserts the PHP side emits exactly these keys; frontend/scripts/verify-data-bridge.mjs asserts the bridge reads them. Changing one side without the other broke redemption once (v2.7.0) — the bridge guarded on a key the payload had stopped sending, so quote links silently rendered a plain calculator.",
+  "payloadKeys": ["token", "label", "items", "locked", "customPriced", "totalOverride", "price"],
+  "itemKeys": ["state", "customPrice", "price", "customPriced"],
+  "sample": {
+    "token": "47cb950bca239125454798ea09b4dd7b",
+    "label": "Gallery package",
+    "items": [
+      {
+        "state": {
+          "calculatorType": "archival", "rollKey": "44", "brand": "Hahnemühle",
+          "finish": "Matt Smooth", "selectedPaperSlug": "photo_rag", "units": "inches",
+          "width": "20", "height": "30", "quantity": 1,
+          "mounting": "no_mounting", "turnaround": "standard"
+        },
+        "customPrice": "", "price": 337.5, "customPriced": true
+      },
+      {
+        "state": {
+          "calculatorType": "archival", "rollKey": "44", "brand": "Hahnemühle",
+          "finish": "Matt Smooth", "selectedPaperSlug": "photo_rag", "units": "inches",
+          "width": "8", "height": "10", "quantity": 1,
+          "mounting": "no_mounting", "turnaround": "standard"
+        },
+        "customPrice": "", "price": 112.5, "customPriced": true
+      },
+      {
+        "state": {
+          "calculatorType": "archival", "rollKey": "44", "brand": "Hahnemühle",
+          "finish": "Matt Smooth", "selectedPaperSlug": "photo_rag", "units": "inches",
+          "width": "30", "height": "40", "quantity": 1,
+          "mounting": "no_mounting", "turnaround": "standard"
+        },
+        "customPrice": "", "price": 450.0, "customPriced": true
+      }
+    ],
+    "locked": true,
+    "customPriced": true,
+    "totalOverride": 900.0,
+    "price": 900.0
+  }
+}

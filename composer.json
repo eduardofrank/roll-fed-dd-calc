@@ -1,0 +1,21 @@
+{
+    "name": "artmedia/fine-art-calculator",
+    "description": "WordPress plugin — Fine Art Printing Calculator",
+    "type": "wordpress-plugin",
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "FAC\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        }
+    }
+}

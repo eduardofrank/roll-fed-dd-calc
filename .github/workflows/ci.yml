@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: PHP syntax lint
+        run: |
+          set -e
+          find . -path ./vendor -prune -o -path ./frontend -prune -o -name '*.php' -print | while read -r f; do
+            php -l "$f" > /dev/null
+          done
+
+  php-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.4', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: Install dependencies
+        # composer.json pins platform.php to 8.2.0, so the lock resolves for
+        # 8.2. On other PHP versions, override the pin (not committed) and
+        # re-resolve dev deps for that runtime.
+        run: |
+          if [ "${{ matrix.php }}" = "8.2" ]; then
+            composer install --no-interaction --prefer-dist
+          else
+            composer config platform.php "${{ matrix.php }}.0"
+            composer update --no-interaction --prefer-dist
+          fi
+      - run: composer test
+
+  # Upstream also verifies frontend/src → assets/calculator.js. This fork ships
+  # the committed bundle without frontend/; skip that job until source is ported.

@@ -1,0 +1,13 @@
+{
+  "name": "roll-fed-calc-e2e",
+  "private": true,
+  "scripts": {
+    "env:start": "wp-env start",
+    "env:seed": "bash scripts/e2e-seed.sh",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@wordpress/env": "^10.14.0"
+  }
+}

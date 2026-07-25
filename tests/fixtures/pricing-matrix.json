@@ -1,0 +1,90 @@
+[
+  {
+    "name": "standard_20x30_inches_qty1",
+    "state": {
+      "rollKey": "44",
+      "brand": "Hahnemühle",
+      "finish": "Matt Smooth",
+      "selectedPaperSlug": "photo_rag",
+      "units": "inches",
+      "width": "20",
+      "height": "30",
+      "quantity": 1,
+      "mounting": "no_mounting",
+      "turnaround": "standard"
+    },
+    "expected": {
+      "totalPrice": 350.17,
+      "selectedRule": 3,
+      "selectedOrientation": "width",
+      "nestingFactor": 2,
+      "passes": 1
+    }
+  },
+  {
+    "name": "standard_20x30_inches_qty2",
+    "state": {
+      "rollKey": "44",
+      "brand": "Hahnemühle",
+      "finish": "Matt Smooth",
+      "selectedPaperSlug": "photo_rag",
+      "units": "inches",
+      "width": "20",
+      "height": "30",
+      "quantity": 2,
+      "mounting": "no_mounting",
+      "turnaround": "standard"
+    },
+    "expected": {
+      "totalPrice": 350.17,
+      "selectedRule": 3,
+      "selectedOrientation": "width",
+      "nestingFactor": 2,
+      "passes": 1
+    }
+  },
+  {
+    "name": "rule3_width_orientation_60x30_cm_qty3",
+    "state": {
+      "rollKey": "44",
+      "brand": "Hahnemühle",
+      "finish": "Matt Smooth",
+      "selectedPaperSlug": "photo_rag",
+      "units": "centimeters",
+      "width": "60",
+      "height": "30",
+      "quantity": 3,
+      "mounting": "no_mounting",
+      "turnaround": "standard"
+    },
+    "expected": {
+      "totalPrice": 413.59,
+      "selectedRule": 3,
+      "selectedOrientation": "width",
+      "nestingFactor": 1,
+      "passes": 3
+    }
+  },
+  {
+    "name": "centimeters_equivalent_20x30_inches_qty2",
+    "state": {
+      "rollKey": "44",
+      "brand": "Hahnemühle",
+      "finish": "Matt Smooth",
+      "selectedPaperSlug": "photo_rag",
+      "units": "centimeters",
+      "width": "50.8",
+      "height": "76.2",
+      "quantity": 2,
+      "mounting": "no_mounting",
+      "turnaround": "standard"
+    },
+    "expected": {
+      "totalPrice": 350.17,
+      "selectedRule": 3,
+      "selectedOrientation": "width",
+      "nestingFactor": 2,
+      "passes": 1
+    }
+  }
+]

@@ -2,7 +2,7 @@
 
 WordPress plugin for [ArtMedia Studio](https://artmedia.studio) that embeds roll-fed print pricing calculators for **Archival Fine Art** and **Inkjet**, routes configured orders through WooCommerce, and — in this fork — lets shoppers **compose a gang of files on a true-scale roll** before checkout.
 
-**Current version:** 2.23.7 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
+**Current version:** 2.23.8 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
 
 This repository is a fork of [`eduardofrank/roll-fed-calc`](https://github.com/eduardofrank/roll-fed-calc) (local clone: `~/Documents/roll-fed-calc`). Shared core: paper catalogs, nesting math, cart/checkout parity, quote links, shipping class handling, and the pre-built React calculator. **Fork-specific work** lives mainly in the Print Layout Planner and the PHP that prices and fulfills from that layout.
 
@@ -156,7 +156,7 @@ Admin menu slug and text domain remain `fine-art-calculator` so existing bookmar
 | Print Layout Planner | Yes (`layout-planner.js`, `layout-images.php`) | No (as of the parent clone used here) |
 | Layout-driven pricing / min feed | Yes (PHP + hand-applied bits in `calculator.js`) | Check upstream version |
 | React source (`frontend/src`) | Not shipped here — only `assets/calculator.js` | Present (Vite) |
-| PHPUnit / Composer / package tooling | Not present in this tree | Present upstream |
+| PHPUnit + Playwright E2E | Restored from upstream (`tests/`, `composer.json`, `package.json`) | Present |
 
 `CHANGELOG.md` documents that some calculator pricing hooks (minimum feed length and `window.__FAC_LAYOUT_FEED_CM`) were patched directly into `assets/calculator.js`. A rebuild from upstream `frontend/src` without those patches would drop them until the source is updated to match.
 
@@ -166,6 +166,20 @@ Admin menu slug and text domain remain `fine-art-calculator` so existing bookmar
 - Calculator UI changes that need React source should be done in upstream `frontend/`, rebuilt, then the relevant bundle changes ported here (or the missing patches re-applied — see `CHANGELOG.md` entries for 2.20–2.23).
 - `assets/data-bridge.js` validates the localized payload before exposing `window.__FAC_*`; invalid config surfaces a bootstrap error instead of a hard crash when the React entry handles it.
 - For admin UI changes, update the matching `assets/admin-*.js` and keep `fac_admin_scripts()` hook-to-handle mapping aligned.
+
+### Tests
+
+```bash
+composer install
+composer test                 # PHPUnit (WordPress-stubbed)
+
+npm install                   # Playwright + @wordpress/env
+npm run env:start             # wp-env WordPress + WooCommerce
+npm run env:seed              # products + shortcode pages
+npm run test:e2e              # Playwright smoke
+```
+
+CI runs PHP lint/PHPUnit (`.github/workflows/ci.yml`) and E2E (`.github/workflows/e2e.yml`). The upstream frontend-bundle job is omitted here because `frontend/` is not shipped.
 
 ## Upgrading
 

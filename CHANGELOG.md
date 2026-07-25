@@ -3,6 +3,14 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.8 — 2026-07-25
+Restore upstream PHPUnit and Playwright E2E suites.
+
+- Copied `tests/`, `composer.json`/`composer.lock`, `phpunit.xml`, `package.json`,
+  `playwright.config.js`, `.wp-env.json`, `scripts/e2e-seed.sh`, and CI/E2E
+  workflows from `roll-fed-calc`. Bootstrap loads fork `layout-images.php` so
+  cart/AJAX tests resolve `fac_apply_layout_feed_to_state()`.
+
 ## 2.23.7 — 2026-07-25
 Width used no longer shows 7% when the real value is 70%.
 
