@@ -13,6 +13,18 @@
 .faclp__rollline { margin: 2px 0 8px; font-size: .84rem; color: var(--fac-text-secondary,#a0a0a0); }
 .faclp__rollline strong { color: var(--fac-accent,#53a1ff); font-weight: 700; }
 
+/*
+ * Empty layout: the planner clears width/height so the engine prices $0, which
+ * makes React paint its "cannot be printed" chrome. That chrome is nonsense
+ * with no prints staged — hide it. display:flex on .fac__cannot-print-card
+ * beats the HTML [hidden] attribute, so this has to win with !important.
+ */
+#root.fac.faclp-layout-empty #cannot-print-error-banner,
+#root.fac.faclp-layout-empty .fac__cannot-print-card,
+#root.fac.faclp-layout-empty .fac__summary-error {
+  display: none !important;
+}
+
 /* Price mirror — upper right of the planner header. The title and tag keep the
    baseline relationship they always had; only the price is new beside them. */
 .faclp__head-titles { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; min-width: 0; }

@@ -3,6 +3,14 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.3 — 2026-07-24
+Hide the empty-layout "cannot be printed" banner.
+
+- Clearing dimensions for $0.00 made React paint **THIS JOB CANNOT BE PRINTED**
+  with blank sizes (`( and inches)`). That message is meaningless with no
+  prints staged. `#root` now gets `faclp-layout-empty` and CSS hides the
+  cannot-print card / summary error (their `display:flex` was beating `[hidden]`).
+
 ## 2.23.2 — 2026-07-24
 Empty planner shows $0.00, not the calculator boot default.
 

@@ -1533,15 +1533,14 @@
         per.textContent = p.error ? '' : (p.per || '');
     }
     /**
-     * With dims cleared, React renders the size-exceeds error. Replace that
-     * chrome with $0.00 so an empty planner never looks like a failed job.
+     * With dims cleared, React renders size-exceeds / cannot-print chrome.
+     * Mark #root so CSS hides that chrome, and keep the summary at $0.00.
      * Re-applied from the price observer whenever React paints again.
      */
     function applyEmptyCalculatorPrice() {
         var scope = bridge.root;
         if (!scope) return;
-        var banner = scope.querySelector('#cannot-print-error-banner');
-        if (banner) banner.setAttribute('hidden', 'hidden');
+        scope.classList.add('faclp-layout-empty');
         var row = scope.querySelector('.fac__summary-price-row');
         if (!row) return;
         var perEl = row.querySelector('.fac__summary-per-unit');
@@ -1560,8 +1559,7 @@
     function clearEmptyCalculatorPrice() {
         var scope = bridge.root;
         if (!scope) return;
-        var banner = scope.querySelector('#cannot-print-error-banner');
-        if (banner) banner.removeAttribute('hidden');
+        scope.classList.remove('faclp-layout-empty');
     }
     /** Empty layout must not be purchasable as the calculator's boot defaults. */
     function gateCartForEmptyLayout() {
