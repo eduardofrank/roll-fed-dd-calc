@@ -1,0 +1,137 @@
+/* ── Admin number stepper (minus | value | plus) ─────────────────────────── */
+.fac-num-stepper {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid #8c8f94;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.fac-num-stepper__btn {
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  border: none;
+  background: #f6f7f7;
+  color: #1d2327;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.fac-num-stepper__btn:hover {
+  background: #e2e4e7;
+}
+
+.fac-num-stepper__btn:active {
+  background: #dcdcde;
+}
+
+.fac-num-stepper__btn + .fac-num-stepper__input {
+  border-left: 1px solid #dcdcde;
+}
+
+.fac-num-stepper__input + .fac-num-stepper__btn {
+  border-left: 1px solid #dcdcde;
+}
+
+.fac-num-stepper__input {
+  flex: 1;
+  min-width: 0;
+  width: auto !important;
+  border: none !important;
+  border-radius: 0 !important;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 10px 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  -moz-appearance: textfield;
+}
+
+.fac-num-stepper__input::-webkit-outer-spin-button,
+.fac-num-stepper__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.fac-num-stepper__input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 1px #2271b1 !important;
+}
+
+/* Rates page: stepper in form-table cells */
+.fac-admin .form-table .fac-num-stepper {
+  max-width: 280px;
+}
+
+/* Roll widths table: compact steppers and constrained label input */
+#fac-roll-table .r-label {
+  width: 100%;
+  max-width: 180px;
+  box-sizing: border-box;
+}
+
+#fac-roll-table td {
+  vertical-align: middle;
+}
+
+.fac-num-stepper--compact {
+  width: 108px;
+  max-width: 108px;
+}
+
+.fac-num-stepper--compact .fac-num-stepper__btn {
+  flex: 0 0 28px;
+  width: 28px;
+  min-height: 32px;
+  font-size: 16px;
+}
+
+.fac-num-stepper--compact .fac-num-stepper__input {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 2px !important;
+}
+
+#fac-roll-table .r-key {
+  width: 56px;
+}
+
+/* ── Archival card action icons ──────────────────────────────────────────── */
+.fac-card-actions .fac-edit-paper,
+.fac-card-actions .fac-del-btn.fac-delete-paper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 4px 10px;
+}
+
+.fac-card-actions .fac-del-btn.fac-delete-paper {
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+}
+
+.fac-card-actions .fac-edit-paper .dashicons,
+.fac-card-actions .fac-del-btn.fac-delete-paper .dashicons {
+  font-size: 26px;
+  width: 26px;
+  height: 26px;
+  line-height: 26px;
+  margin: 0;
+}
+
+.fac-card-actions .fac-edit-paper {
+  gap: 6px;
+}

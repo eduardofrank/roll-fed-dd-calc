@@ -1,0 +1,399 @@
+/* Roll Fed Calc — Print Layout Planner v2.19.1. BEM namespace faclp__. Inherits --fac-* tokens from .fac */
+.faclp {
+  --faclp-paper: #ffffff; --faclp-paper-edge: #d3cec2; --faclp-paper-ink: #2b2a27; --faclp-paper-ink-2: #6b675e;
+  --faclp-off: #0b0b0b; --faclp-warn: #e8b45a; --faclp-ruler-bg: #101010; --faclp-ruler-ink: #8a8a8a;
+  display: block; margin-top: 28px;
+}
+.faclp * { box-sizing: border-box; }
+.faclp__card { background: var(--fac-card,#151515); border: 1px solid var(--fac-border,#383838); border-radius: var(--fac-radius,0); padding: 20px; }
+@media (min-width:640px){ .faclp__card { padding: 24px; } }
+.faclp__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; margin-bottom: 4px; }
+.faclp__title { margin: 0; font-size: 1rem; font-weight: 700; letter-spacing: .01em; color: var(--fac-text-primary,#f0f0f0); }
+.faclp__tag { font-size: .6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--fac-text-muted,#6e6e6e); }
+.faclp__rollline { margin: 2px 0 8px; font-size: .84rem; color: var(--fac-text-secondary,#a0a0a0); }
+.faclp__rollline strong { color: var(--fac-accent,#53a1ff); font-weight: 700; }
+
+/* Price mirror — upper right of the planner header. The title and tag keep the
+   baseline relationship they always had; only the price is new beside them. */
+.faclp__head-titles { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; min-width: 0; }
+.faclp__pricebar { display: flex; flex-direction: column; align-items: flex-end; text-align: right; margin-left: auto; flex: 0 0 auto; }
+.faclp__pricebar-label { font-size: .6875rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--fac-text-muted,#6e6e6e); }
+.faclp__pricebar-value { font-size: 1.625rem; font-weight: 700; line-height: 1.15; color: var(--fac-accent,#53a1ff); font-variant-numeric: tabular-nums; }
+.faclp__pricebar-per { font-size: .75rem; color: var(--fac-text-secondary,#a0a0a0); }
+.faclp__pricebar--empty { visibility: hidden; }
+.faclp__pricebar--error .faclp__pricebar-value { font-size: 1rem; color: var(--fac-error,#f87171); }
+
+@media (max-width: 560px) {
+  .faclp__pricebar { align-items: flex-start; text-align: left; margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .faclp__pricebar-value { transition: color .18s ease; }
+}
+
+.faclp__lede { margin: 0 0 16px; font-size: .8125rem; line-height: 1.55; color: var(--fac-text-secondary,#a0a0a0); max-width: 72ch; }
+.faclp__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.faclp__btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; font-size: .8125rem; font-weight: 600; border-radius: var(--fac-radius,0); border: 1px solid var(--fac-border,#383838); background: #1c1c1c; color: var(--fac-text-primary,#f0f0f0); transition: border-color .15s ease, background .15s ease; cursor: pointer; }
+.faclp__btn:hover { border-color: var(--fac-border-hi,#4a4a4a); background: #222; }
+.faclp__btn--primary { background: var(--fac-accent,#53a1ff); border-color: var(--fac-accent,#53a1ff); color: #0b0b0b; }
+.faclp__btn--primary:hover { background: #6cb0ff; border-color: #6cb0ff; }
+.faclp__btn--danger { color: var(--fac-error,#f87171); }
+.faclp__btn--danger:hover { border-color: var(--fac-error,#f87171); }
+.faclp__btn:focus-visible, .faclp__chipbtn:focus-visible, .faclp__iconbtn:focus-visible { outline: 2px solid var(--fac-accent,#53a1ff); outline-offset: 2px; }
+.faclp__btn-ico { width: 14px; height: 14px; flex-shrink: 0; }
+.faclp__stats { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-bottom: 14px; }
+@media (min-width:768px){ .faclp__stats { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+.faclp__stat { background: var(--fac-card-nested,#121212); border: 1px solid var(--fac-border,#383838); padding: 10px 12px; border-radius: var(--fac-radius,0); }
+.faclp__stat-label { display: block; font-size: .625rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--fac-text-muted,#6e6e6e); margin-bottom: 3px; }
+.faclp__stat-value { font-size: .9375rem; font-weight: 700; color: var(--fac-text-primary,#f0f0f0); font-variant-numeric: tabular-nums; }
+.faclp__stat-value--accent { color: var(--fac-accent,#53a1ff); }
+.faclp__stat-sub { font-size: .6875rem; color: var(--fac-text-secondary,#a0a0a0); font-weight: 500; }
+.faclp__notice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--fac-border,#383838); border-left: 3px solid var(--fac-accent,#53a1ff); background: var(--fac-card-nested,#121212); padding: 10px 12px; margin: 0 0 10px; font-size: .78125rem; line-height: 1.5; color: var(--fac-text-secondary,#a0a0a0); }
+.faclp__notice--warn { border-left-color: var(--faclp-warn); }
+.faclp__notice--error { border-left-color: var(--fac-error,#f87171); }
+.faclp__notice strong { color: var(--fac-text-primary,#f0f0f0); font-weight: 600; }
+.faclp__notice-ico { flex-shrink: 0; width: 15px; height: 15px; margin-top: 1px; }
+.faclp__notice--warn .faclp__notice-ico { color: var(--faclp-warn); }
+.faclp__notice--error .faclp__notice-ico { color: var(--fac-error,#f87171); }
+.faclp__notice-body { min-width: 0; }
+.faclp__groups { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.faclp__chipbtn { display: inline-flex; align-items: center; gap: 8px; font-size: .75rem; font-weight: 600; padding: 7px 10px; cursor: pointer; background: #1c1c1c; border: 1px solid var(--fac-border,#383838); color: var(--fac-text-primary,#f0f0f0); border-radius: var(--fac-radius,0); transition: border-color .15s ease; }
+.faclp__chipbtn:hover { border-color: var(--fac-accent,#53a1ff); }
+.faclp__chipbtn-count { background: var(--fac-raised,#383838); padding: 1px 6px; border-radius: 999px; font-size: .6875rem; color: var(--fac-text-secondary,#a0a0a0); }
+.faclp__chipbtn--active { border-color: var(--fac-accent,#53a1ff); }
+.faclp__chipbtn--active .faclp__chipbtn-count { background: var(--fac-accent,#53a1ff); color: #0b0b0b; }
+.faclp__viewport { position: relative; border: 1px solid var(--fac-border,#383838); background: var(--faclp-ruler-bg); max-height: 680px; overflow: auto; overscroll-behavior: contain; touch-action: none; }
+.faclp__grid { display: grid; grid-template-columns: 34px minmax(0,max-content); grid-template-rows: 26px max-content; min-width: min-content; }
+.faclp__corner { position: sticky; top: 0; left: 0; z-index: 6; background: var(--faclp-ruler-bg); border-right: 1px solid #262626; border-bottom: 1px solid #262626; display: flex; align-items: center; justify-content: center; font-size: .5625rem; font-weight: 700; color: var(--faclp-ruler-ink); letter-spacing: .04em; }
+.faclp__ruler-x { position: sticky; top: 0; z-index: 5; background: var(--faclp-ruler-bg); border-bottom: 1px solid #262626; overflow: hidden; }
+.faclp__ruler-y { position: sticky; left: 0; z-index: 5; background: var(--faclp-ruler-bg); border-right: 1px solid #262626; overflow: hidden; }
+.faclp__tick-label { position: absolute; font-size: .5625rem; font-weight: 600; color: var(--faclp-ruler-ink); font-variant-numeric: tabular-nums; user-select: none; pointer-events: none; }
+.faclp__ruler-x .faclp__tick-label { top: 3px; transform: translateX(-50%); }
+.faclp__ruler-y .faclp__tick-label { left: 4px; transform: translateY(-50%); }
+.faclp__sheet-wrap { position: relative; background: var(--faclp-off); }
+.faclp__sheet { position: relative; background: var(--faclp-paper); box-shadow: 0 0 0 1px #000, 0 10px 28px rgba(0,0,0,.55); }
+.faclp__edge { position: absolute; top: 0; bottom: 0; z-index: 1; background: repeating-linear-gradient(-45deg, rgba(43,42,39,.17) 0 3px, transparent 3px 7px); }
+.faclp__edge--left { left: 0; border-right: 1px dashed var(--faclp-paper-edge); }
+.faclp__edge--right { right: 0; border-left: 1px dashed var(--faclp-paper-edge); }
+.faclp__edge-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-90deg); font-size: .5625rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faclp-paper-ink-2); white-space: nowrap; }
+.faclp__printable { position: absolute; top: 0; z-index: 2; }
+.faclp__printable-label { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); z-index: 1; font-size: .625rem; font-weight: 700; letter-spacing: .04em; color: var(--faclp-paper-ink-2); white-space: nowrap; pointer-events: none; opacity: .85; }
+.faclp__feedmark { position: absolute; left: 0; right: 0; z-index: 4; height: 0; border-top: 1px dashed rgba(43,42,39,.5); pointer-events: none; }
+.faclp__feedmark-label { position: absolute; right: 4px; top: 3px; font-size: .5625rem; font-weight: 700; color: var(--faclp-paper-ink-2); background: rgba(255,255,255,.85); padding: 1px 4px; white-space: nowrap; }
+.faclp__unused-note { position: absolute; left: 50%; transform: translateX(-50%); z-index: 1; pointer-events: none; font-size: .625rem; font-weight: 600; color: var(--faclp-paper-ink-2); opacity: .6; white-space: nowrap; }
+.faclp__drop { position: absolute; z-index: 3; top: 24px; left: 12px; right: 12px; border: 2px dashed var(--faclp-paper-edge); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 22px 14px; cursor: pointer; background: none; color: var(--faclp-paper-ink-2); font-weight: 600; font-size: .8125rem; }
+.faclp__drop strong { color: var(--faclp-paper-ink); font-weight: 700; }
+.faclp__drop-ico { width: 22px; height: 22px; color: var(--faclp-paper-ink-2); }
+.faclp--dragging .faclp__viewport { outline: 2px dashed var(--fac-accent,#53a1ff); outline-offset: -2px; }
+.faclp--dragging .faclp__drop { border-color: var(--fac-accent,#53a1ff); color: var(--fac-accent,#53a1ff); }
+.faclp__print { position: absolute; z-index: 3; border: 1px solid rgba(0,0,0,.45); background: #fff; cursor: grab; overflow: visible; touch-action: none; }
+.faclp__print:hover { box-shadow: 0 0 0 1px var(--fac-accent,#53a1ff); }
+.faclp__print--selected { z-index: 6; box-shadow: 0 0 0 2px var(--fac-accent,#53a1ff); }
+.faclp__print--dragging { cursor: grabbing; opacity: .94; }
+.faclp__print--dragging .faclp__print-flag { display: none; }
+.faclp__print-frame { position: absolute; inset: 0; overflow: hidden; }
+.faclp__print-img { object-fit: fill; display: block; pointer-events: none; user-select: none; }
+.faclp__print-chip { position: absolute; left: 0; bottom: 0; z-index: 2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .625rem; font-weight: 700; line-height: 1; padding: 3px 5px; pointer-events: none; background: rgba(255,255,255,.9); color: var(--faclp-paper-ink); font-variant-numeric: tabular-nums; }
+.faclp__print-flag { position: absolute; top: 0; right: 0; z-index: 2; font-size: .5625rem; font-weight: 800; line-height: 1; padding: 3px 5px; pointer-events: none; letter-spacing: .04em; background: var(--faclp-warn); color: #1a1206; }
+.faclp__handle { position: absolute; z-index: 7; width: 12px; height: 12px; background: #fff; border: 1.5px solid var(--fac-accent,#53a1ff); border-radius: 2px; }
+.faclp__handle--nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.faclp__handle--ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.faclp__handle--se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+.faclp__handle--sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.faclp__handle--n { top: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.faclp__handle--s { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+.faclp__handle--e { right: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+.faclp__handle--w { left: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+@media (pointer:coarse){ .faclp__handle { width: 16px; height: 16px; border-radius: 3px; } }
+/* Persistent selection / edit bar — sits above the canvas (outside the scroll
+   area), so image controls are always reachable and never trapped under the
+   sticky ruler. Reuses the .faclp__iconbtn family for the action buttons. */
+.faclp__selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; min-height: 42px; padding: 7px 10px; margin-bottom: 12px; background: var(--fac-card-nested,#121212); border: 1px solid var(--fac-border,#383838); border-radius: var(--fac-radius,0); }
+.faclp__selbar--active { border-color: var(--fac-border-hi,#4a4a4a); }
+.faclp__selbar-hint { font-size: .75rem; font-weight: 500; color: var(--fac-text-muted,#6e6e6e); }
+.faclp__selbar-hint--inline { flex-basis: 100%; margin-top: 2px; }
+.faclp__selbar-label { font-size: .75rem; font-weight: 700; color: var(--fac-text-primary,#f0f0f0); white-space: nowrap; }
+.faclp__selbar-ico { width: 16px; height: 16px; color: var(--fac-accent,#53a1ff); flex-shrink: 0; }
+.faclp__selbar-dims { display: inline-flex; align-items: center; gap: 3px; }
+.faclp__selbar-input { width: 58px; padding: 6px; font-size: .8125rem; font-weight: 600; text-align: right; background: #1c1c1c; border: 1px solid var(--fac-border,#383838); color: var(--fac-text-primary,#f0f0f0); border-radius: var(--fac-radius,0); font-variant-numeric: tabular-nums; }
+.faclp__selbar-input:focus { outline: none; border-color: var(--fac-accent,#53a1ff); }
+.faclp__selbar-x { color: var(--fac-text-muted,#6e6e6e); font-size: .8125rem; font-weight: 600; }
+.faclp__selbar-unit { color: var(--fac-text-secondary,#a0a0a0); font-size: .75rem; font-weight: 600; margin-left: 2px; }
+.faclp__selbar-sep { width: 1px; height: 22px; background: var(--fac-border,#383838); margin: 0 3px; }
+.faclp__selbar-note { flex-basis: 100%; font-size: .6875rem; font-weight: 600; color: var(--faclp-warn); }
+.faclp__selbar-link { font-size: .75rem; font-weight: 600; color: var(--fac-accent,#53a1ff); background: none; border: none; padding: 4px 2px; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.faclp__selbar-link:hover { color: #6cb0ff; }
+.faclp__selbar-link:focus-visible { outline: 2px solid var(--fac-accent,#53a1ff); outline-offset: 2px; }
+@media (min-width:768px){ .faclp__selbar-hint--inline, .faclp__selbar-note { flex-basis: auto; margin-top: 0; margin-left: 4px; } }
+/* Group bounding box + corner scale handles (multi-select) */
+.faclp__groupbox { position: absolute; z-index: 7; border: 1.5px dashed var(--fac-accent,#53a1ff); background: rgba(83,161,255,.06); pointer-events: none; }
+.faclp__groupbox-count { position: absolute; top: -9px; left: 6px; z-index: 1; font-size: .5625rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; padding: 1px 5px; background: var(--fac-accent,#53a1ff); color: #0b0b0b; white-space: nowrap; }
+.faclp__ghandle { position: absolute; z-index: 2; width: 14px; height: 14px; background: var(--fac-accent,#53a1ff); border: 1.5px solid #fff; border-radius: 2px; pointer-events: auto; }
+.faclp__ghandle--nw { top: -7px; left: -7px; cursor: nwse-resize; }
+.faclp__ghandle--ne { top: -7px; right: -7px; cursor: nesw-resize; }
+.faclp__ghandle--se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+.faclp__ghandle--sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+@media (pointer:coarse){ .faclp__ghandle { width: 18px; height: 18px; } }
+/* Marquee (drag-to-select) rectangle and its live preview outline */
+.faclp__marquee { position: absolute; z-index: 8; border: 1px dashed var(--fac-accent,#53a1ff); background: rgba(83,161,255,.1); pointer-events: none; }
+.faclp__print--marquee { box-shadow: 0 0 0 2px var(--fac-accent,#53a1ff); }
+.faclp__iconbtn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: #1c1c1c; border: 1px solid var(--fac-border,#383838); color: var(--fac-text-secondary,#a0a0a0); cursor: pointer; border-radius: var(--fac-radius,0); transition: border-color .15s ease, color .15s ease; }
+.faclp__iconbtn:hover { border-color: var(--fac-border-hi,#4a4a4a); color: var(--fac-text-primary,#f0f0f0); }
+.faclp__iconbtn svg { width: 14px; height: 14px; }
+.faclp__iconbtn--on { color: var(--fac-accent,#53a1ff); border-color: var(--fac-accent,#53a1ff); }
+.faclp__iconbtn--danger:hover { color: var(--fac-error,#f87171); border-color: var(--fac-error,#f87171); }
+.faclp--interacting { user-select: none; }
+.faclp--interacting .faclp__print { transition: none; }
+.faclp__legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; }
+.faclp__legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: .71875rem; color: var(--fac-text-secondary,#a0a0a0); }
+.faclp__legend-swatch { width: 15px; height: 15px; border: 1px solid var(--fac-border-hi,#4a4a4a); flex-shrink: 0; }
+.faclp__legend-swatch--paper { background: var(--faclp-paper); }
+.faclp__legend-swatch--edge { background: var(--faclp-paper); background-image: repeating-linear-gradient(-45deg, rgba(43,42,39,.35) 0 2px, transparent 2px 4px); }
+.faclp__legend-swatch--off { background: var(--faclp-off); }
+.faclp__hint { margin: 10px 0 0; font-size: .71875rem; color: var(--fac-text-muted,#6e6e6e); line-height: 1.5; }
+@media (prefers-reduced-motion:reduce){ .faclp__btn, .faclp__print, .faclp__iconbtn { transition: none; } }
+@media (pointer:coarse){ .faclp__btn { padding: 11px 16px; } .faclp__selbar-input { width: 64px; } .faclp__iconbtn { width: 34px; height: 34px; } }
+
+/* A field holding an unconfirmed sum: visibly waiting on Enter. */
+.faclp__selbar-input--pending {
+  border-color: var(--fac-accent, #53a1ff) !important;
+  box-shadow: inset 0 0 0 1px var(--fac-accent, #53a1ff);
+}
+
+/* ── Labelled size fields ─────────────────────────────────────────────────── */
+.faclp__selbar-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.faclp__selbar-fieldlabel {
+  font-size: .6875rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--fac-text-muted, #8a8a8a);
+  cursor: pointer;              /* clicking the label focuses its field */
+  user-select: none;
+  flex-shrink: 0;
+}
+.faclp__selbar-field:focus-within .faclp__selbar-fieldlabel { color: var(--fac-accent, #53a1ff); }
+
+/* Present to assistive tech, invisible on screen. */
+.faclp__sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Swap width/height ────────────────────────────────────────────────────────
+   Same icon and the same 180deg turn over 300ms as the control that used to sit
+   between the dimension fields, so it behaves exactly as it did before.        */
+.faclp__swapbtn svg { transition: transform 300ms ease; }
+.faclp__swapbtn:hover svg,
+.faclp__swapbtn:focus-visible svg { transform: rotate(180deg); }
+.faclp__swapbtn:active svg { transform: rotate(180deg) scale(.92); }
+@media (prefers-reduced-motion: reduce) {
+  .faclp__swapbtn svg,
+  .faclp__swapbtn:hover svg,
+  .faclp__swapbtn:focus-visible svg { transition: none; transform: none; }
+}
+
+/* ── Units, set from inside the planner ──────────────────────────────────── */
+.faclp__units {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: auto;          /* sits at the far end of the toolbar row */
+  padding: 3px;
+  border: 1px solid var(--fac-border, #3a3a3a);
+  border-radius: var(--fac-radius, 8px);
+  background: var(--fac-card-nested, rgba(255,255,255,.04));
+  flex-shrink: 0;
+}
+.faclp__unitbtn {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  font-size: .75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--fac-text-muted, #8a8a8a);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease;
+}
+.faclp__unitbtn:hover { color: var(--fac-text-secondary, #c4c4c4); }
+.faclp__unitbtn:focus-visible { outline: 2px solid var(--fac-accent, #53a1ff); outline-offset: 1px; }
+.faclp__unitbtn--on {
+  background: #f0f0f0;
+  color: #111;
+  box-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+@media (max-width: 560px) {
+  .faclp__units { margin-left: 0; width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .faclp__unitbtn { transition: none; } }
+
+/* ── Placeholders: reserved space, no file ────────────────────────────────── */
+.faclp__print--placeholder .faclp__print-frame {
+  background: #e6e6e6;
+  background-image: repeating-linear-gradient(
+    45deg, rgba(0,0,0,.035) 0 10px, transparent 10px 20px
+  );
+  border: 1px dashed rgba(0,0,0,.42);
+  box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+}
+.faclp__ph-dims {
+  color: #111;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  padding: 2px 6px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Fallback for browsers without container query units. */
+  font-size: .875rem;
+}
+
+/*
+ * Fluid size driven by the placeholder itself, not the viewport — a 30" print
+ * gets big type and a 4" print gets small type on the same screen. cqw keeps
+ * the line inside the width; cqh keeps it inside the height; whichever is
+ * tighter wins, then clamp holds it between legible and overbearing.
+ */
+@supports (font-size: 1cqmin) {
+  .faclp__print--placeholder .faclp__print-frame { container-type: size; }
+  .faclp__ph-dims { font-size: clamp(.6875rem, min(10cqw, 25cqh), 1.875rem); }
+  /* On a small print every pixel of width counts, so give the padding back. */
+  @container (max-width: 110px) { .faclp__ph-dims { padding: 0 2px; } }
+  @container (max-height: 44px) { .faclp__ph-dims { padding: 0 2px; line-height: 1; } }
+  /* Too small to hold a hit target: the edit bar carries the control instead. */
+  @container (max-width: 88px) { .faclp__ph-lock { display: none; } }
+  @container (max-height: 66px) { .faclp__ph-lock { display: none; } }
+}
+
+/* Aspect-ratio toggle sitting on the placeholder itself. */
+.faclp__ph-lock {
+  position: absolute; top: 3px; right: 3px; z-index: 4;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0;
+  border: 1px solid rgba(0,0,0,.28);
+  border-radius: 4px;
+  background: rgba(255,255,255,.72);
+  color: #333;
+  cursor: pointer;
+  opacity: .55;
+  transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+}
+.faclp__ph-lock:hover,
+.faclp__print--selected .faclp__ph-lock { opacity: 1; }
+.faclp__ph-lock:focus-visible { outline: 2px solid var(--fac-accent,#53a1ff); outline-offset: 1px; opacity: 1; }
+.faclp__ph-lock--on {
+  opacity: .9;
+  background: var(--fac-accent,#53a1ff);
+  border-color: var(--fac-accent,#53a1ff);
+  color: #fff;
+}
+.faclp__ph-lock-ico { width: 13px; height: 13px; display: block; }
+/* The locked state is the one worth seeing without hovering. */
+.faclp__print--dragging .faclp__ph-lock { display: none; }
+
+/* Matching emphasis for the edit-bar toggle when engaged. */
+.faclp__selbar-lock--on { background: var(--fac-accent,#53a1ff); border-color: var(--fac-accent,#53a1ff); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) { .faclp__ph-lock { transition: none; } }
+
+/* ── Upload progress, drawn on the print itself ───────────────────────────── */
+.faclp__uploading {
+  position: absolute; inset: 0; z-index: 6;
+  display: none; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 8px; box-sizing: border-box;
+  background: rgba(8, 8, 8, 0.62);
+  backdrop-filter: saturate(60%) blur(1px);
+  pointer-events: none;
+}
+.faclp__uploading--on { display: flex; }
+.faclp__uploading-pct {
+  font-size: 1rem; font-weight: 700; line-height: 1;
+  color: #fff; letter-spacing: .02em;
+  text-shadow: 0 1px 3px rgba(0,0,0,.7);
+  font-variant-numeric: tabular-nums;
+}
+.faclp__uploading-track {
+  width: 82%; max-width: 260px; height: 8px;
+  background: rgba(255,255,255,.22);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 999px; overflow: hidden;
+}
+.faclp__uploading-fill {
+  height: 100%; width: 0%;
+  background: var(--fac-accent, #53a1ff);
+  border-radius: 999px;
+  transition: width 180ms ease;
+}
+/* Small prints: the number is dropped in JS; the bar stays readable. */
+.faclp__print--uploading { outline: 2px solid var(--fac-accent, #53a1ff); outline-offset: -2px; }
+.faclp__uploading--compact { gap: 0; padding: 4px; }
+.faclp__uploading--compact .faclp__uploading-pct { display: none; }
+.faclp__uploading--compact .faclp__uploading-track { height: 5px; width: 90%; }
+
+/* A quiet pulse so a multi-minute upload never looks frozen. */
+@keyframes faclp-uploading-pulse { 0%,100% { opacity: 1; } 50% { opacity: .72; } }
+.faclp__uploading--on .faclp__uploading-pct { animation: faclp-uploading-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .faclp__uploading--on .faclp__uploading-pct { animation: none; }
+  .faclp__uploading-fill { transition: none; }
+}
+
+/* ===========================================================================
+   v2.11.0 — Single-column form layout.
+   The calculator UI ships as a compiled bundle, so these rules restructure it
+   from the outside. Hidden sections stay in the DOM on purpose: the planner
+   drives price by writing into #dimension-width-input, #dimension-height-input
+   and #quantity-input-field, and removing them would sever that bridge.
+   =========================================================================== */
+
+/* Planner leads the form (it is emitted before #root in the shortcode). */
+.faclp { margin-top: 0; margin-bottom: 28px; }
+
+/* Kill the two-column split at every breakpoint. */
+.fac .fac__grid { grid-template-columns: minmax(0, 1fr) !important; }
+@media (min-width: 1024px) { .fac .fac__grid { grid-template-columns: minmax(0, 1fr) !important; } }
+.fac .fac__left-panel,
+.fac .fac__right-panel { width: 100%; min-width: 0; max-width: none; }
+
+/* Removed from view: the roll visualisation diagram. */
+.fac .fac__viz-wrap { display: none !important; }
+
+/* Removed from view: Enter Print Dimensions + Print Quantity.
+   :has() targets the owning section without relying on child position, so the
+   archival and inkjet branches (different section counts) both match. */
+.fac .fac__left-panel > div:has(#dimension-width-input),
+.fac .fac__left-panel > div:has(#quantity-input-field),
+.fac .fac__right-panel > div:has(#dimension-width-input),
+.fac .fac__right-panel > div:has(#quantity-input-field) { display: none !important; }
+
+/* Paper selection: ~4 per row on desktop, degrading smoothly. */
+.fac .fac__paper-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1200px) { .fac .fac__paper-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 860px)  { .fac .fac__paper-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px)  { .fac .fac__paper-list { grid-template-columns: minmax(0, 1fr); } }
+.fac .fac__paper-list--no-images { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 860px) { .fac .fac__paper-list--no-images { grid-template-columns: minmax(0, 1fr); } }
+
+/* Narrower cards need tighter type to keep the name on one or two lines. */
+@media (min-width: 861px) {
+  .fac .fac__paper-card-name { font-size: .9375rem; }
+  .fac .fac__paper-card-body { padding: 9px; }
+}

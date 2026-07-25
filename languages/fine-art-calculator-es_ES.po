@@ -1,0 +1,73 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Roll Fed Calc\n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Print Type"
+msgstr "Tipo de impresión"
+
+msgid "Inkjet"
+msgstr "Inkjet"
+
+msgid "Archival Museum Quality"
+msgstr "Calidad museo archival"
+
+msgid "Paper Style"
+msgstr "Tipo de papel"
+
+msgid "Dimensions"
+msgstr "Dimensiones"
+
+msgid "Roll Width"
+msgstr "Ancho de rollo"
+
+msgid "Nesting"
+msgstr "Acomodo en rollo"
+
+msgid "Mounting Option"
+msgstr "Opción de montaje"
+
+msgid "Mounting Cost"
+msgstr "Costo de montaje"
+
+msgid "Print Cost"
+msgstr "Costo de impresión"
+
+msgid "Turnaround"
+msgstr "Tiempo de entrega"
+
+msgid "3 Business Days (Rush)"
+msgstr "3 días hábiles (urgente)"
+
+msgid "5 Business Days"
+msgstr "5 días hábiles"
+
+msgid "Rush Fee"
+msgstr "Cargo por urgencia"
+
+msgid "Weight"
+msgstr "Peso"
+
+msgid "Est. Weight"
+msgstr "Peso estimado"
+
+msgid "A configured print in your cart is no longer available and was removed. Please configure it again."
+msgstr "Una impresión configurada en su carrito ya no está disponible y fue eliminada. Por favor configúrela de nuevo."
+
+msgid "Print prices were updated since you configured your order: $%1$s is now $%2$s."
+msgstr "Los precios de impresión cambiaron desde que configuró su pedido: $%1$s ahora es $%2$s."
+
+msgid "Operations digest"
+msgstr "Resumen de operaciones"
+
+msgid "Orders in production (processing):"
+msgstr "Pedidos en producción (procesando):"
+
+msgid "Errors logged yesterday:"
+msgstr "Errores registrados ayer:"
+
+msgid "All clear."
+msgstr "Todo en orden."
