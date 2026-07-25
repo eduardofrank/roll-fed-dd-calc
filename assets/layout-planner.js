@@ -353,9 +353,13 @@
         return { minX: minX, minY: minY, maxX: maxX, maxY: maxY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
     }
     function overlapsList(x, y, w, h, list) { for (var j = 0; j < list.length; j++) { var it = list[j]; if (rectsOverlap(x, y, w, h, it.xIn, it.yIn, it.wIn, it.hIn)) return true; } return false; }
-    // Rigid translate of a selected group. dx is clamped to keep the group's
-    // bounding box on the roll; the move is rejected (per axis, like a single
-    // print) if it would collide with an unselected print.
+    /**
+     * Rigid translate of a selected group. dx/dy are clamped to keep the group's
+     * bounding box on the roll. When the full delta would collide, binary-search
+     * the largest fraction that still fits (so the group seats flush against a
+     * neighbour) and fall back to per-axis slides — never snap back to the
+     * drag origin (that made multi-select "bounce" off a third print).
+     */
     function computeGroupTranslate(sel, others, dxIn, dyIn, usableIn) {
         var b = groupBounds(sel);
         var cdx = clamp(dxIn, -b.minX, Math.max(0, usableIn - b.maxX));
@@ -369,7 +373,16 @@
             }
             return out;
         }
-        return attempt(cdx, cdy) || attempt(cdx, 0) || attempt(0, cdy) || attempt(0, 0);
+        var full = attempt(cdx, cdy);
+        if (full) return full;
+        // Closest point along the requested delta that still clears others.
+        var best = null, lo = 0, hi = 1, k, mid, t;
+        for (k = 0; k < 24; k++) {
+            mid = (lo + hi) / 2;
+            t = attempt(cdx * mid, cdy * mid);
+            if (t) { best = t; lo = mid; } else { hi = mid; }
+        }
+        return attempt(cdx, 0) || attempt(0, cdy) || best;
     }
     // Uniform scale of a group about an anchor point (gaps scale too, so a
     // non-overlapping group stays non-overlapping). The factor is clamped to
@@ -1520,13 +1533,21 @@
         var startX = (e.clientX - rect.left) / pxPerIn, startY = (e.clientY - rect.top) / pxPerIn;
         var sel = selectedItems(), others = state.items.filter(function (x) { return !isSelected(x.id); });
         var origin = sel.map(function (it) { return { it: it, x: it.xIn, y: it.yIn }; });
+        // Same last-valid axis slide as a single print: keep sliding along an
+        // edge once contact is made instead of leaping back to the drag start.
+        var lastDx = 0, lastDy = 0;
         beginInteraction(node);
         try { node.setPointerCapture(e.pointerId); } catch (err) {}
         function move(ev) {
             var dx = (ev.clientX - rect.left) / pxPerIn - startX, dy = (ev.clientY - rect.top) / pxPerIn - startY;
             var base = origin.map(function (o) { return { id: o.it.id, xIn: o.x, yIn: o.y, wIn: o.it.wIn, hIn: o.it.hIn }; });
-            var placed = computeGroupTranslate(base, others, dx, dy, usable);
+            var placed = computeGroupTranslate(base, others, dx, dy, usable)
+                || computeGroupTranslate(base, others, dx, lastDy, usable)
+                || computeGroupTranslate(base, others, lastDx, dy, usable)
+                || computeGroupTranslate(base, others, lastDx, lastDy, usable);
             if (!placed) return;
+            var o0 = origin[0], p0 = placed[o0.it.id];
+            if (p0) { lastDx = p0.x - o0.x; lastDy = p0.y - o0.y; }
             origin.forEach(function (o) { var p = placed[o.it.id]; if (p) { o.it.xIn = p.x; o.it.yIn = p.y; var n = nodeById[o.it.id]; if (n) { n.style.left = (p.x * pxPerIn) + 'px'; n.style.top = (p.y * pxPerIn) + 'px'; } } });
             positionGroupBox();
         }

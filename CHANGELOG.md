@@ -3,6 +3,14 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.10 — 2026-07-25
+Multi-select drag no longer bounces off a third print.
+
+- Group translate fell back to a zero delta when the pointer overshot a
+  neighbour, snapping the selection home. It now binary-searches the closest
+  non-overlapping offset (flush contact) and keeps a last-valid axis slide,
+  matching single-print drag.
+
 ## 2.23.9 — 2026-07-25
 README matches layout-driven gang pricing and restored tests.
 
