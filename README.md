@@ -2,7 +2,7 @@
 
 WordPress plugin for [ArtMedia Studio](https://artmedia.studio) that embeds roll-fed print pricing calculators for **Archival Fine Art** and **Inkjet**, routes configured orders through WooCommerce, and — in this fork — lets shoppers **compose a gang of files on a true-scale roll** before checkout.
 
-**Current version:** 2.23.8 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
+**Current version:** 2.23.9 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
 
 This repository is a fork of [`eduardofrank/roll-fed-calc`](https://github.com/eduardofrank/roll-fed-calc) (local clone: `~/Documents/roll-fed-calc`). Shared core: paper catalogs, nesting math, cart/checkout parity, quote links, shipping class handling, and the pre-built React calculator. **Fork-specific work** lives mainly in the Print Layout Planner and the PHP that prices and fulfills from that layout.
 
@@ -77,8 +77,10 @@ Customer-facing companion (`assets/layout-planner.js` + `assets/layout-planner.c
 - **Drag to place, drag to resize.** Drop JPG/PNG/WebP (or browse), move prints on a true-scale roll, resize with aspect lock (Shift to distort), rotate 90°, type exact W×H (fields accept simple arithmetic), multi-select (Shift-click or marquee), group move/scale. Double-click swaps an image. Keyboard: arrows nudge, R rotates, Delete removes, Ctrl/⌘-D duplicates.
 - **Prints never overlap.** Collision resolution slides/resizes against neighbours; add/duplicate/rotate that would collide relocate to the nearest free slot.
 - **Nests like the press.** New prints auto-place across the usable width; **Arrange to fit** packs tightly. Summary chips show count, feed used, utilisation, and free strip width.
-- **Drives the calculator.** Quantity and (for a uniform size) W×H are written through the calculator’s own DOM inputs. Mixed sizes expose per-size “apply” chips for the one-size-at-a-time cart flow. A live total is mirrored into the planner header (read from the calculator, not recomputed).
-- **Layout-driven pricing** (`FAC_LAYOUT_DRIVEN_PRICING`, currently on): the roll length the shopper actually lays out can raise the billed feed (never trusted downward). Server geometry from the session manifest is authoritative at add-to-cart. Add-to-cart waits for a pending manifest sync so checkout does not price a stale arrangement.
+- **Drives the calculator.** Quantity and (for a uniform size) W×H are written through the calculator’s own DOM inputs. Mixed sizes expose per-size “apply” chips for the one-size-at-a-time cart flow. A live total is mirrored into the planner header (preferring the cart-button amount so a stale summary node cannot lie).
+- **Empty layout = $0.00.** With no prints staged, dimensions are cleared, add-to-cart is disabled, and both the planner and calculator summary show **$0.00** (cannot-print chrome is hidden via `faclp-layout-empty`).
+- **Layout-driven pricing** (`FAC_LAYOUT_DRIVEN_PRICING`, currently on): when the calculator quantity matches the whole layout (including mixed sizes), **paper is billed from the laid-out feed** — nesting must not invent extra passes for smaller prints that fill a free strip. The feed is measured server-side from the session manifest (never trusted from the browser). Without a matching layout feed, ideal nesting applies as usual. Add-to-cart waits for a pending manifest sync so checkout does not price a stale arrangement.
+- **Width stats** measure the placement on the canvas: utilisation = print area ÷ (usable width × feed used); **widest free strip** is the widest column clear for the whole used feed (not a gap under shorter prints).
 - **Printer minimum feed:** billed length is floored at ~279 mm / 10.985 in (`FAC_MIN_PRINT_LENGTH_CM`) regardless of tiny jobs.
 - **400 PPI guidance.** Under-resolved files are flagged **LOW RES** with the largest sharp size shown; they are not blocked.
 - **Placeholders.** File-less reserved spaces price like real prints for “pay now, send art later” (WeTransfer after checkout).
@@ -89,7 +91,7 @@ The planner is vanilla JS and does not modify the React bundle: it reads roll/un
 
 ## Pricing, quotes, and shipping
 
-**Server pricing** (`includes/pricing.php`): nest across usable roll width → passes × feed → mounting (gatorboard; disabled above 48×96 in) → turnaround multiplier → weight estimate. Client and server must agree within $0.02 or add-to-cart is rejected; checkout re-quotes stored line items.
+**Server pricing** (`includes/pricing.php`): nest across usable roll width → passes × feed, or — when a matching layout feed is stamped — bill that feed for paper; then mounting (gatorboard; disabled above 48×96 in) → turnaround multiplier → weight estimate. Client and server must agree within $0.02 or add-to-cart is rejected; checkout re-quotes stored line items.
 
 **Shareable quotes** (`includes/quotes.php`): `fac_quote` CPT with token link, multi-item apportioned pricing, optional negotiated total, expiry, single-use/reusable, lock flags. Authoring mode is toggled from the admin bar on the live calculator. Locked/custom-priced links sell the stored configuration; negotiated prices survive checkout re-validation. Quote records are kept on uninstall.
 
@@ -146,6 +148,12 @@ No REST API — public and admin traffic use `admin-ajax.php` / `admin-post.php`
 | `assets/layout-planner.js` | Print Layout Planner |
 | `assets/layout-planner.css` | Planner styles |
 | `assets/admin-*.js` | Per-admin-page CRUD |
+| `tests/` | PHPUnit suite + Playwright E2E (`tests/e2e/`) |
+| `composer.json` | PHPUnit (`composer test`) |
+| `package.json` | Playwright + `@wordpress/env` (`npm run test:e2e`) |
+| `.wp-env.json` | Local WordPress + WooCommerce for E2E |
+| `scripts/e2e-seed.sh` | Seed products and shortcode pages for E2E |
+| `.github/workflows/` | CI (PHP lint/PHPUnit) and E2E |
 
 Admin menu slug and text domain remain `fine-art-calculator` so existing bookmarks and URLs keep working.
 
