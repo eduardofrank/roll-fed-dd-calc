@@ -174,7 +174,16 @@
         close: 'M18 6 6 18|M6 6l12 12',
         layers: 'M12 2 2 7l10 5 10-5-10-5z|M2 17l10 5 10-5|M2 12l10 5 10-5'
     };
-    function fmtNum(n, maxDec) { if (maxDec === undefined) maxDec = 2; return n.toFixed(maxDec).replace(/\.?0+$/, ''); }
+    /**
+     * Format a number, trimming only fractional trailing zeros.
+     * (A naive /\.?0+$/ strip turns 70% into "7%" and 100 into "1".)
+     */
+    function fmtNum(n, maxDec) {
+        if (maxDec === undefined) maxDec = 2;
+        if (!isFinite(n)) return '0';
+        if (maxDec <= 0) return String(Math.round(n));
+        return n.toFixed(maxDec).replace(/(\.\d*?)0+$/, '$1').replace(/\.$/, '');
+    }
     /**
      * Evaluate a short arithmetic expression typed into a size field.
      *

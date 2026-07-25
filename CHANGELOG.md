@@ -3,6 +3,13 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.7 — 2026-07-25
+Width used no longer shows 7% when the real value is 70%.
+
+- `fmtNum` stripped trailing zeros from whole numbers (`70` → `7`, `100` → `1`),
+  so utilization that rounded to a multiple of ten looked 10× too small on some
+  rolls. Only fractional trailing zeros are trimmed now.
+
 ## 2.23.6 — 2026-07-25
 Widest free strip is a full-height free column, not a gap under shorter prints.
 
