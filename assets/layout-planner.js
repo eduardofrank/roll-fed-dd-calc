@@ -618,33 +618,36 @@
             areaIn: area
         };
     }
-    /** Widest empty horizontal gap inside the used feed length. */
+    /**
+     * Widest free *vertical* strip across the used feed length.
+     *
+     * A cross-section gap under shorter prints (e.g. 11.7 in beside 8×12s but
+     * only under a 2.7 in grid) is not a strip you can still fill for the whole
+     * run — only columns clear from y=0 through feed count.
+     */
     function maxFreeStripIn(usable, feed) {
-        var ys = [0, feed];
+        var xs = [0, usable];
         state.items.forEach(function (it) {
-            ys.push(it.yIn);
-            ys.push(it.yIn + it.hIn);
-        });
-        ys = uniqSort(ys.filter(function (y) { return y >= -EPS && y <= feed + EPS; }));
-        var maxFree = 0;
-        for (var i = 0; i < ys.length - 1; i++) {
-            var y0 = ys[i], y1 = ys[i + 1];
-            if (y1 - y0 <= EPS) continue;
-            var yMid = (y0 + y1) / 2;
-            var intervals = [];
-            state.items.forEach(function (it) {
-                if (it.yIn < yMid + EPS && it.yIn + it.hIn > yMid - EPS) {
-                    intervals.push([it.xIn, it.xIn + it.wIn]);
-                }
-            });
-            intervals.sort(function (a, b) { return a[0] - b[0]; });
-            var x = 0;
-            for (var j = 0; j < intervals.length; j++) {
-                var iv = intervals[j];
-                if (iv[0] > x + EPS) maxFree = Math.max(maxFree, iv[0] - x);
-                x = Math.max(x, iv[1]);
+            if (it.yIn < feed - EPS && it.yIn + it.hIn > EPS) {
+                xs.push(it.xIn);
+                xs.push(it.xIn + it.wIn);
             }
-            if (usable > x + EPS) maxFree = Math.max(maxFree, usable - x);
+        });
+        xs = uniqSort(xs.filter(function (x) { return x >= -EPS && x <= usable + EPS; }));
+        var maxFree = 0;
+        for (var i = 0; i < xs.length - 1; i++) {
+            var x0 = xs[i], x1 = xs[i + 1];
+            if (x1 - x0 <= EPS) continue;
+            var blocked = false;
+            for (var j = 0; j < state.items.length; j++) {
+                var it = state.items[j];
+                if (it.xIn < x1 - EPS && it.xIn + it.wIn > x0 + EPS &&
+                    it.yIn < feed - EPS && it.yIn + it.hIn > EPS) {
+                    blocked = true;
+                    break;
+                }
+            }
+            if (!blocked) maxFree = Math.max(maxFree, x1 - x0);
         }
         return maxFree;
     }

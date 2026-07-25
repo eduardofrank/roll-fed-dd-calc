@@ -3,6 +3,13 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.6 — 2026-07-25
+Widest free strip is a full-height free column, not a gap under shorter prints.
+
+- Beside 8×12s, a 2.7 in grid left an 11.7 in cross-section empty only under the
+  grid; that was reported as the free strip. The chip now measures columns clear
+  for the whole used feed (~1 in on the 43.7 in printable width).
+
 ## 2.23.5 — 2026-07-25
 Mixed gangs price by roll feed used; width stats match the real layout.
 
