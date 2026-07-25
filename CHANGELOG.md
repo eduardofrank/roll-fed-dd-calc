@@ -3,6 +3,14 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.11 — 2026-07-25
+Fix multi-select bounce when seating flush against a third print.
+
+- `computeGroupTranslate` preferred `attempt(0, cdy)` over the flush pose from
+  binary search. On a near-horizontal drag that is `attempt(0, 0)` — always
+  valid — so the selection snapped back to the drag origin. Zero deltas are no
+  longer treated as a successful move; flush / axis binary search wins instead.
+
 ## 2.23.10 — 2026-07-25
 Multi-select drag no longer bounces off a third print.
 

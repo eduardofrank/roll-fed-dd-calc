@@ -356,9 +356,13 @@
     /**
      * Rigid translate of a selected group. dx/dy are clamped to keep the group's
      * bounding box on the roll. When the full delta would collide, binary-search
-     * the largest fraction that still fits (so the group seats flush against a
-     * neighbour) and fall back to per-axis slides — never snap back to the
-     * drag origin (that made multi-select "bounce" off a third print).
+     * the largest fraction that still fits (flush against a neighbour), then try
+     * per-axis slides the same way.
+     *
+     * Important: never treat a zero delta as a successful result when the caller
+     * asked to move. `attempt(0, 0)` is always "valid" and used to win over the
+     * flush pose via `||`, which made multi-select bounce home on horizontal
+     * (or vertical) approaches.
      */
     function computeGroupTranslate(sel, others, dxIn, dyIn, usableIn) {
         var b = groupBounds(sel);
@@ -373,16 +377,29 @@
             }
             return out;
         }
-        var full = attempt(cdx, cdy);
-        if (full) return full;
-        // Closest point along the requested delta that still clears others.
-        var best = null, lo = 0, hi = 1, k, mid, t;
-        for (k = 0; k < 24; k++) {
-            mid = (lo + hi) / 2;
-            t = attempt(cdx * mid, cdy * mid);
-            if (t) { best = t; lo = mid; } else { hi = mid; }
+        /** Largest t in [0,1] where attempt(dx*t, dy*t) fits; null if only t=0. */
+        function closestAlong(dx, dy) {
+            var full = attempt(dx, dy);
+            if (full) return full;
+            var best = null, lo = 0, hi = 1, k, mid, t;
+            for (k = 0; k < 24; k++) {
+                mid = (lo + hi) / 2;
+                t = attempt(dx * mid, dy * mid);
+                if (t) { best = t; lo = mid; } else { hi = mid; }
+            }
+            return best;
         }
-        return attempt(cdx, 0) || attempt(0, cdy) || best;
+        var hit = closestAlong(cdx, cdy);
+        if (hit) return hit;
+        if (Math.abs(cdx) > EPS) {
+            hit = closestAlong(cdx, 0);
+            if (hit) return hit;
+        }
+        if (Math.abs(cdy) > EPS) {
+            hit = closestAlong(0, cdy);
+            if (hit) return hit;
+        }
+        return null;
     }
     // Uniform scale of a group about an anchor point (gaps scale too, so a
     // non-overlapping group stays non-overlapping). The factor is clamped to
@@ -1538,18 +1555,27 @@
         var lastDx = 0, lastDy = 0;
         beginInteraction(node);
         try { node.setPointerCapture(e.pointerId); } catch (err) {}
+        function applyPlaced(placed) {
+            var o0 = origin[0], p0 = placed[o0.it.id];
+            if (p0) { lastDx = p0.x - o0.x; lastDy = p0.y - o0.y; }
+            origin.forEach(function (o) {
+                var p = placed[o.it.id];
+                if (!p) return;
+                o.it.xIn = p.x; o.it.yIn = p.y;
+                var n = nodeById[o.it.id];
+                if (n) { n.style.left = (p.x * pxPerIn) + 'px'; n.style.top = (p.y * pxPerIn) + 'px'; }
+            });
+            positionGroupBox();
+        }
         function move(ev) {
             var dx = (ev.clientX - rect.left) / pxPerIn - startX, dy = (ev.clientY - rect.top) / pxPerIn - startY;
             var base = origin.map(function (o) { return { id: o.it.id, xIn: o.x, yIn: o.y, wIn: o.it.wIn, hIn: o.it.hIn }; });
             var placed = computeGroupTranslate(base, others, dx, dy, usable)
                 || computeGroupTranslate(base, others, dx, lastDy, usable)
-                || computeGroupTranslate(base, others, lastDx, dy, usable)
-                || computeGroupTranslate(base, others, lastDx, lastDy, usable);
+                || computeGroupTranslate(base, others, lastDx, dy, usable);
+            // No move that fits: hold the last seated pose (do not apply origin).
             if (!placed) return;
-            var o0 = origin[0], p0 = placed[o0.it.id];
-            if (p0) { lastDx = p0.x - o0.x; lastDy = p0.y - o0.y; }
-            origin.forEach(function (o) { var p = placed[o.it.id]; if (p) { o.it.xIn = p.x; o.it.yIn = p.y; var n = nodeById[o.it.id]; if (n) { n.style.left = (p.x * pxPerIn) + 'px'; n.style.top = (p.y * pxPerIn) + 'px'; } } });
-            positionGroupBox();
+            applyPlaced(placed);
         }
         function up() { node.removeEventListener('pointermove', move); node.removeEventListener('pointerup', up); node.removeEventListener('pointercancel', up); try { node.releasePointerCapture(e.pointerId); } catch (err) {} finishInteraction(); }
         node.addEventListener('pointermove', move); node.addEventListener('pointerup', up); node.addEventListener('pointercancel', up);
