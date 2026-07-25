@@ -727,7 +727,19 @@
     }
     function syncCalculator() {
         var n = state.items.length;
-        if (n === 0) { bridge.syncQuantity(1); return; }
+        /*
+         * Empty layout = nothing to sell. The React calculator boots with a
+         * default 20×30 @ qty 1 (~$350), and the old path kept that alive by
+         * syncing quantity to 1 with no prints staged. Clear the dimensions so
+         * the engine prices $0, then present $0.00 (not "Size Exceeds Limit").
+         */
+        if (n === 0) {
+            bridge.setInput(document.getElementById('dimension-width-input'), '');
+            bridge.setInput(document.getElementById('dimension-height-input'), '');
+            window.__FAC_LAYOUT_FEED_CM = 0;
+            updatePrice();
+            return;
+        }
         if (state.appliedGroupKey) { var g = sizeGroups().filter(function (x) { return x.key === state.appliedGroupKey; })[0]; if (g) { bridge.applyDims(g.wIn, g.hIn, state.units); bridge.syncQuantity(g.count); return; } state.appliedGroupKey = null; }
         bridge.syncQuantity(n);
         var groups = sizeGroups(); if (groups.length === 1) bridge.applyDims(groups[0].wIn, groups[0].hIn, state.units);
@@ -1495,17 +1507,75 @@
      * arranging prints meant scrolling back up to see what it cost. This puts
      * the same figure — read from the calculator, never recomputed — in the
      * planner too, and keeps it in view while they work.
+     *
+     * Exception: with no prints staged the calculator would otherwise show its
+     * boot default (or "Size Exceeds Limit" after we clear dims). Empty layout
+     * is always $0.00, in both the planner bar and the calculator summary.
      */
     function updatePrice() {
         if (!dom.pricebar) return;
         var val = dom.pricebar.querySelector('.faclp__pricebar-value');
         var per = dom.pricebar.querySelector('.faclp__pricebar-per');
+        gateCartForEmptyLayout();
+        if (!state.items.length) {
+            dom.pricebar.classList.remove('faclp__pricebar--empty', 'faclp__pricebar--error');
+            val.textContent = '$0.00';
+            per.textContent = '';
+            applyEmptyCalculatorPrice();
+            return;
+        }
+        clearEmptyCalculatorPrice();
         var p = bridge.readPrice();
         if (!p) { dom.pricebar.classList.add('faclp__pricebar--empty'); return; }
         dom.pricebar.classList.remove('faclp__pricebar--empty');
         dom.pricebar.classList.toggle('faclp__pricebar--error', !!p.error);
         val.textContent = p.text;
         per.textContent = p.error ? '' : (p.per || '');
+    }
+    /**
+     * With dims cleared, React renders the size-exceeds error. Replace that
+     * chrome with $0.00 so an empty planner never looks like a failed job.
+     * Re-applied from the price observer whenever React paints again.
+     */
+    function applyEmptyCalculatorPrice() {
+        var scope = bridge.root;
+        if (!scope) return;
+        var banner = scope.querySelector('#cannot-print-error-banner');
+        if (banner) banner.setAttribute('hidden', 'hidden');
+        var row = scope.querySelector('.fac__summary-price-row');
+        if (!row) return;
+        var perEl = row.querySelector('.fac__summary-per-unit');
+        if (perEl) perEl.textContent = '';
+        var price = row.querySelector('.fac__summary-price');
+        if (price) {
+            if (price.textContent !== '$0.00') price.textContent = '$0.00';
+            return;
+        }
+        var err = row.querySelector('.fac__summary-error');
+        if (!err || !err.parentNode) return;
+        var host = err.parentNode;
+        host.textContent = '';
+        host.appendChild(el('span', { className: 'fac__summary-price', 'data-faclp-zero': '1', text: '$0.00' }));
+    }
+    function clearEmptyCalculatorPrice() {
+        var scope = bridge.root;
+        if (!scope) return;
+        var banner = scope.querySelector('#cannot-print-error-banner');
+        if (banner) banner.removeAttribute('hidden');
+    }
+    /** Empty layout must not be purchasable as the calculator's boot defaults. */
+    function gateCartForEmptyLayout() {
+        var btn = document.getElementById('add-to-cart-primary-btn');
+        if (!btn) return;
+        if (!state.items.length) {
+            btn.disabled = true;
+            btn.classList.add('fac__cart-btn--disabled');
+            btn.setAttribute('data-faclp-empty', '1');
+            return;
+        }
+        if (btn.getAttribute('data-faclp-empty') === '1') {
+            btn.removeAttribute('data-faclp-empty');
+        }
     }
     function watchPrice(root) {
         // characterData: React rewrites the amount in place, which is neither a
@@ -1754,6 +1824,14 @@
         failedCount: function () { return state.items.filter(function (it) { return !it.placeholder && it.stashState === 'failed'; }).length; },
         placeholderCount: function () { return state.items.filter(function (it) { return !!it.placeholder; }).length; }
     };
+    function bindEmptyCartGate() {
+        document.addEventListener('click', function (e) {
+            var b = e.target && e.target.closest && e.target.closest('#add-to-cart-primary-btn');
+            if (!b || state.items.length) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }, true);
+    }
     function bindArtworkFlush() {
         if (!artwork.enabled()) return;
         window.addEventListener('pagehide', function () { artwork.flush(); });
@@ -1803,7 +1881,11 @@
             var root = document.getElementById('root'), qty = document.getElementById('quantity-input-field');
             if (root && qty) {
                 bridge.root = root; state.rollKey = bridge.readRollKey() || getRolls()[0].key; state.units = bridge.readUnits();
-                buildSkeleton(container); watchCalculator(root); watchPrice(root); updateChrome(); layoutCanvas(); artwork.init(); bindArtworkFlush(); return;
+                buildSkeleton(container); watchCalculator(root); watchPrice(root); updateChrome(); layoutCanvas(); artwork.init(); bindEmptyCartGate(); bindArtworkFlush();
+                // Clear the calculator's boot default (20×30 @ $350…) so an empty
+                // planner opens at $0.00 with add-to-cart disabled.
+                syncCalculator();
+                return;
             }
             if (++tries < 200) window.setTimeout(waitForCalc, 50);
         })();

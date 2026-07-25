@@ -3,6 +3,16 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.2 — 2026-07-24
+Empty planner shows $0.00, not the calculator boot default.
+
+- With no prints staged, the React calculator still booted at 20×30 × qty 1
+  (~$350) and the planner kept that alive by syncing quantity to 1. An empty
+  layout now clears the dimension fields, presents **$0.00** in the planner and
+  the calculator summary (instead of "Size Exceeds Limit"), and disables
+  add-to-cart so the boot default cannot be purchased.
+- Adding the first print/placeholder restores normal dim/qty sync and pricing.
+
 ## 2.23.1 — 2026-07-23
 Two fixes to 2.23.0: the price now actually moves, and the planner text is back.
 

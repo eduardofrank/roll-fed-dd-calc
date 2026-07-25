@@ -3,7 +3,7 @@
  * Plugin Name: Roll Fed Calc
  * Plugin URI:  https://artmedia.studio
  * Description: Roll-fed print calculators for Archival Fine Art and Inkjet via shortcodes [fine_art_calculator_embed] and [inkjet_calculator_embed]. Manage paper options and prices from the WordPress admin.
- * Version:     2.23.1
+ * Version:     2.23.2
  * Author:      ArtMedia Studio
  * Requires PHP: 7.4
  * License:     GPL-2.0+
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'FAC_VERSION',    '2.23.1' );
+define( 'FAC_VERSION',    '2.23.2' );
 define( 'FAC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FAC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
