@@ -2,7 +2,7 @@
 
 WordPress plugin for [ArtMedia Studio](https://artmedia.studio) that embeds roll-fed print pricing calculators for **Archival Fine Art** and **Inkjet**, routes configured orders through WooCommerce, and — in this fork — lets shoppers **compose a gang of files on a true-scale roll** before checkout.
 
-**Current version:** 2.23.3 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
+**Current version:** 2.23.4 · **Bootstrap file:** `roll-fed-calc.php` · **GitHub:** [eduardofrank/roll-fed-dd-calc](https://github.com/eduardofrank/roll-fed-dd-calc)
 
 This repository is a fork of [`eduardofrank/roll-fed-calc`](https://github.com/eduardofrank/roll-fed-calc) (local clone: `~/Documents/roll-fed-calc`). Shared core: paper catalogs, nesting math, cart/checkout parity, quote links, shipping class handling, and the pre-built React calculator. **Fork-specific work** lives mainly in the Print Layout Planner and the PHP that prices and fulfills from that layout.
 

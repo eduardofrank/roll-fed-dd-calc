@@ -3,6 +3,15 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.4 — 2026-07-24
+Summary price no longer stuck at $0.00 after adding prints.
+
+- The empty-state workaround had rewritten React's price-row DOM and left a
+  synthetic **$0.00** node behind. Add to Cart showed the real total ($280…)
+  while Verified Studio Price stayed at zero. Empty state is CSS-only now
+  (`faclp-layout-empty` + `::before`); orphans are removed; the planner mirrors
+  the cart-button amount so a stale summary node cannot lie.
+
 ## 2.23.3 — 2026-07-24
 Hide the empty-layout "cannot be printed" banner.
 

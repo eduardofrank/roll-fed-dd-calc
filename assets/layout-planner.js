@@ -491,10 +491,26 @@
          */
         readPrice: function () {
             var scope = this.root || document;
+            // Prefer the cart button amount — it is never rewritten by the
+            // planner's empty-state chrome, so it stays the calculator's truth
+            // even if a stale summary node still says $0.00.
+            var cartBtn = document.getElementById('add-to-cart-primary-btn');
+            if (cartBtn && !cartBtn.disabled) {
+                var cartText = (cartBtn.textContent || '').replace(/\s+/g, ' ').trim();
+                var cartMatch = cartText.match(/\$\s*([0-9]+(?:\.[0-9]{1,2})?)/);
+                if (cartMatch) {
+                    var perEl = scope.querySelector('.fac__summary-per-unit');
+                    return {
+                        error: false,
+                        text: '$' + cartMatch[1],
+                        per: perEl && perEl.offsetParent !== null ? (perEl.textContent || '').trim() : ''
+                    };
+                }
+            }
             var err = scope.querySelector('.fac__summary-error');
-            if (err) return { error: true, text: (err.textContent || '').trim() };
+            if (err && err.offsetParent !== null) return { error: true, text: (err.textContent || '').trim() };
             var p = scope.querySelector('.fac__summary-price');
-            if (!p) return null;
+            if (!p || p.getAttribute('data-faclp-zero') === '1') return null;
             var per = scope.querySelector('.fac__summary-per-unit');
             return {
                 error: false,
@@ -798,7 +814,10 @@
         updateChrome(); layoutCanvas(); artwork.schedule();
         // Deferred: quantity and dimensions are written through the calculator's
         // own inputs just above, and their values settle on the next tick.
-        window.setTimeout(pushLayoutFeed, 0);
+        window.setTimeout(function () {
+            pushLayoutFeed();
+            updatePrice();
+        }, 0);
     }
 
     var decodeErrors = [];
@@ -1527,39 +1546,61 @@
         clearEmptyCalculatorPrice();
         var p = bridge.readPrice();
         if (!p) { dom.pricebar.classList.add('faclp__pricebar--empty'); return; }
+        // Heal a summary node left at $0.00 by the old empty-state path while
+        // the cart button already shows the live total.
+        if (!p.error && bridge.root) {
+            var summary = bridge.root.querySelector('.fac__summary-price');
+            var summaryText = summary ? (summary.textContent || '').replace(/\s+/g, '') : '';
+            var liveText = (p.text || '').replace(/\s+/g, '');
+            if (summary && /^\$0(\.0+)?$/.test(summaryText) && liveText && !/^\$0(\.0+)?$/.test(liveText)) {
+                summary.textContent = p.text;
+            }
+        }
         dom.pricebar.classList.remove('faclp__pricebar--empty');
         dom.pricebar.classList.toggle('faclp__pricebar--error', !!p.error);
         val.textContent = p.text;
         per.textContent = p.error ? '' : (p.per || '');
     }
     /**
-     * With dims cleared, React renders size-exceeds / cannot-print chrome.
-     * Mark #root so CSS hides that chrome, and keep the summary at $0.00.
-     * Re-applied from the price observer whenever React paints again.
+     * Empty layout: mark #root so CSS hides cannot-print chrome and paints
+     * $0.00 via ::before. Do not rewrite React's price-row nodes — an earlier
+     * path inserted a synthetic $0.00 span that stayed after prints were added
+     * while the Add to Cart label (untouched) showed the real total.
      */
     function applyEmptyCalculatorPrice() {
         var scope = bridge.root;
         if (!scope) return;
         scope.classList.add('faclp-layout-empty');
-        var row = scope.querySelector('.fac__summary-price-row');
-        if (!row) return;
-        var perEl = row.querySelector('.fac__summary-per-unit');
-        if (perEl) perEl.textContent = '';
-        var price = row.querySelector('.fac__summary-price');
-        if (price) {
-            if (price.textContent !== '$0.00') price.textContent = '$0.00';
-            return;
+        // Drop orphans left by older builds of this empty-state workaround.
+        var orphans = scope.querySelectorAll('[data-faclp-zero="1"]');
+        for (var i = 0; i < orphans.length; i++) {
+            if (orphans[i].parentNode) orphans[i].parentNode.removeChild(orphans[i]);
         }
-        var err = row.querySelector('.fac__summary-error');
-        if (!err || !err.parentNode) return;
-        var host = err.parentNode;
-        host.textContent = '';
-        host.appendChild(el('span', { className: 'fac__summary-price', 'data-faclp-zero': '1', text: '$0.00' }));
     }
     function clearEmptyCalculatorPrice() {
         var scope = bridge.root;
         if (!scope) return;
+        var wasEmpty = scope.classList.contains('faclp-layout-empty');
         scope.classList.remove('faclp-layout-empty');
+        var orphans = scope.querySelectorAll('[data-faclp-zero="1"]');
+        for (var i = 0; i < orphans.length; i++) {
+            if (orphans[i].parentNode) orphans[i].parentNode.removeChild(orphans[i]);
+        }
+        // Older empty-state path wiped the price row and left a bare
+        // .fac__summary-price as a direct child — remove those so React's
+        // nested price span is the one querySelector finds.
+        var row = scope.querySelector('.fac__summary-price-row');
+        if (row) {
+            var kids = row.children;
+            for (var j = kids.length - 1; j >= 0; j--) {
+                if (kids[j].classList && kids[j].classList.contains('fac__summary-price')) {
+                    row.removeChild(kids[j]);
+                }
+            }
+        }
+        // Leaving the empty state: nudge React so the real total replaces any
+        // stale $0.00 text still sitting on a managed price node.
+        if (wasEmpty) bridge.forceRecalc();
     }
     /** Empty layout must not be purchasable as the calculator's boot defaults. */
     function gateCartForEmptyLayout() {

@@ -15,14 +15,29 @@
 
 /*
  * Empty layout: the planner clears width/height so the engine prices $0, which
- * makes React paint its "cannot be printed" chrome. That chrome is nonsense
- * with no prints staged — hide it. display:flex on .fac__cannot-print-card
- * beats the HTML [hidden] attribute, so this has to win with !important.
+ * makes React paint "cannot be printed" / size-exceeds chrome. Hide that and
+ * show $0.00 via ::before — never rewrite React's price-row DOM (doing so left
+ * a stuck $0.00 node after prints were added while Add to Cart showed the real
+ * total). display:flex on the error cards beats [hidden], so use !important.
  */
 #root.fac.faclp-layout-empty #cannot-print-error-banner,
 #root.fac.faclp-layout-empty .fac__cannot-print-card,
-#root.fac.faclp-layout-empty .fac__summary-error {
+#root.fac.faclp-layout-empty .fac__summary-error,
+#root.fac.faclp-layout-empty .fac__summary-price,
+#root.fac.faclp-layout-empty .fac__summary-per-unit {
   display: none !important;
+}
+#root.fac.faclp-layout-empty .fac__summary-price-row > div:first-child {
+  display: none !important;
+}
+#root.fac.faclp-layout-empty .fac__summary-price-row::before {
+  content: '$0.00';
+  display: block;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--fac-accent, #53a1ff);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Price mirror — upper right of the planner header. The title and tag keep the
