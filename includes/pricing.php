@@ -25,18 +25,12 @@ define( 'FAC_MIN_PRINT_LENGTH_CM', 27.9 );
 define( 'FAC_MIN_PRINT_LENGTH_INCHES', 10.985 );
 
 /*
- * Bill the roll length the shopper actually laid out, not the length ideal
- * nesting would have used.
+ * Bill the roll length the shopper actually laid out when a layout feed is
+ * present (see fac_artwork_layout_geometry() / fac_layout_feed_cm_for_state()).
+ * Nesting alone invents extra passes for mixed gangs that already fit in one
+ * run; the server-stamped layout feed is authoritative for paper in that case.
  *
- * The planner lets prints be dragged anywhere on the roll, so a layout can run
- * far longer than the calculator's nesting math assumes — four prints stacked
- * in a column consume four passes of roll, not one. The geometry to price that
- * is already stored server-side (see fac_artwork_layout_geometry()).
- *
- * This stays OFF until assets/calculator.js computes the same number. The
- * add-to-cart endpoint rejects any request where the client and server prices
- * differ by more than $0.02, so switching the server on alone would turn every
- * layout-driven order into a 409. Flip both together.
+ * Client and server must agree within $0.02 or add-to-cart returns 409.
  */
 if ( ! defined( 'FAC_LAYOUT_DRIVEN_PRICING' ) ) {
     define( 'FAC_LAYOUT_DRIVEN_PRICING', true );
@@ -206,23 +200,22 @@ function fac_calculate_price( $state ) {
     $passes     = $nesting_factor > 0 ? (int) ceil( $quantity / $nesting_factor ) : 0;
 
     /*
-     * Ideal nesting is the floor, never the ceiling. A layout that spreads the
-     * same prints down the roll consumes more paper, and the shopper is charged
-     * for what the press actually feeds.
+     * When a server-measured layout feed is present (stamped by
+     * fac_apply_layout_feed_to_state — never trusted from the browser), that
+     * length is the paper charge. Nesting must not invent extra passes for a
+     * mixed gang that already fits in one run of roll.
      *
-     * The layout may only ever raise the length. It arrives from the browser,
-     * so treating it as authoritative in both directions would let a crafted
-     * request buy a 40 in run at the price of a 10 in one.
+     * Without a layout feed, bill ideal nesting as before.
      */
     $nesting_feed_cm = $passes * $feed_cm;
     $layout_feed_cm  = FAC_LAYOUT_DRIVEN_PRICING && isset( $state['layoutFeedCm'] )
         ? max( 0.0, floatval( $state['layoutFeedCm'] ) )
         : 0.0;
 
-    $requested_feed_cm  = max( $nesting_feed_cm, $layout_feed_cm );
+    $requested_feed_cm  = $layout_feed_cm > 0 ? $layout_feed_cm : $nesting_feed_cm;
     $billed_feed_cm     = $requested_feed_cm > 0 ? max( $requested_feed_cm, FAC_MIN_PRINT_LENGTH_CM ) : 0.0;
     $min_length_applied = $billed_feed_cm > $requested_feed_cm + 0.0005;
-    $layout_driven      = $layout_feed_cm > $nesting_feed_cm + 0.0005;
+    $layout_driven      = $layout_feed_cm > 0;
 
     $print_cost = $nesting_factor > 0 ? $billed_feed_cm * $roll_width_cm * $paper_rate : 0.0;
 

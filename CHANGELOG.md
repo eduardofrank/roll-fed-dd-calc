@@ -3,6 +3,17 @@
 All notable changes to Roll Fed Calc. Versions are tagged `vX.Y.Z`; tags
 trigger a GitHub release with an installable plugin zip.
 
+## 2.23.5 — 2026-07-25
+Mixed gangs price by roll feed used; width stats match the real layout.
+
+- Filling the free strip beside 8×12s with smaller prints no longer multiplies
+  the price (nesting was treating every print as the large footprint). When the
+  calculator quantity matches the whole layout, paper is billed from the
+  laid-out feed — client, PHP, and the `calculator.js` layout-feed hook agree.
+- **Width used** / **widest free strip** now measure the placement on the
+  canvas instead of a re-packed ideal, so a filled strip reads ~90%+ used and
+  ~1 in free rather than ~78% / ~11 in.
+
 ## 2.23.4 — 2026-07-24
 Summary price no longer stuck at $0.00 after adding prints.
 

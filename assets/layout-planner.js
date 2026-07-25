@@ -46,7 +46,7 @@
             lowResSummary: '{n} image(s) are lower resolution than {ppi} PPI at their current size.',
             lowResSummaryBody: 'Each one prints sharp at {ppi} PPI up to the size shown on it. You can print larger — detail just gets softer — and they stay in your order. For the crispest result, send higher-resolution masters through the WeTransfer link after checkout.',
             mixedTitle: 'You planned {n} different sizes.',
-            mixedBody: 'The calculator prices one size at a time. Apply a size group below, add it to cart, then apply the next group and repeat.',
+            mixedBody: 'Paper is priced from the roll length this layout uses. To check out one size at a time, apply a size group below, add it to cart, then apply the next group and repeat.',
             applyGroup: 'Apply {dims}', applied: 'In calculator',
             qtyMismatch: 'Calculator quantity is {qty}, but {n} print(s) are planned.', syncNow: 'Sync quantity',
             priceLabel: 'Your price',
@@ -97,7 +97,7 @@
             lowResSummary: '{n} imagen(es) tienen menos resolución que {ppi} PPI a su tamaño actual.',
             lowResSummaryBody: 'Cada una imprime nítida a {ppi} PPI hasta el tamaño indicado en ella. Puedes imprimir más grande — el detalle solo se suaviza — y permanecen en tu pedido. Para el mejor resultado, envía archivos de mayor resolución por WeTransfer tras el pago.',
             mixedTitle: 'Planificaste {n} tamaños distintos.',
-            mixedBody: 'El calculador cotiza un tamaño a la vez. Aplica un grupo abajo, añádelo al carrito y luego aplica el siguiente.',
+            mixedBody: 'El papel se cotiza según el largo de rollo que usa esta composición. Para pagar un tamaño a la vez, aplica un grupo abajo, añádelo al carrito y luego aplica el siguiente.',
             applyGroup: 'Aplicar {dims}', applied: 'En el calculador',
             qtyMismatch: 'La cantidad del calculador es {qty}, pero hay {n} impresión(es) planificadas.', syncNow: 'Sincronizar cantidad',
             priceLabel: 'Tu precio',
@@ -598,6 +598,57 @@
         if (nest <= 0) return 0;
         return Math.max(0, feedUsedIn() - nest);
     }
+    /**
+     * Width utilisation and free strip for the layout *as placed* — not a
+     * re-packed ideal. Re-packing made a filled free strip still look ~11 in
+     * empty because pack() sorted items onto fresh shelves.
+     */
+    function layoutStats() {
+        var usable = currentRoll().usableInches;
+        var feed = feedUsedIn();
+        if (!state.items.length || feed <= EPS || usable <= EPS) {
+            return { utilization: 0, maxLeftover: usable, feedIn: 0, areaIn: 0 };
+        }
+        var area = 0;
+        state.items.forEach(function (it) { area += it.wIn * it.hIn; });
+        return {
+            utilization: area / (usable * feed),
+            maxLeftover: maxFreeStripIn(usable, feed),
+            feedIn: feed,
+            areaIn: area
+        };
+    }
+    /** Widest empty horizontal gap inside the used feed length. */
+    function maxFreeStripIn(usable, feed) {
+        var ys = [0, feed];
+        state.items.forEach(function (it) {
+            ys.push(it.yIn);
+            ys.push(it.yIn + it.hIn);
+        });
+        ys = uniqSort(ys.filter(function (y) { return y >= -EPS && y <= feed + EPS; }));
+        var maxFree = 0;
+        for (var i = 0; i < ys.length - 1; i++) {
+            var y0 = ys[i], y1 = ys[i + 1];
+            if (y1 - y0 <= EPS) continue;
+            var yMid = (y0 + y1) / 2;
+            var intervals = [];
+            state.items.forEach(function (it) {
+                if (it.yIn < yMid + EPS && it.yIn + it.hIn > yMid - EPS) {
+                    intervals.push([it.xIn, it.xIn + it.wIn]);
+                }
+            });
+            intervals.sort(function (a, b) { return a[0] - b[0]; });
+            var x = 0;
+            for (var j = 0; j < intervals.length; j++) {
+                var iv = intervals[j];
+                if (iv[0] > x + EPS) maxFree = Math.max(maxFree, iv[0] - x);
+                x = Math.max(x, iv[1]);
+            }
+            if (usable > x + EPS) maxFree = Math.max(maxFree, usable - x);
+        }
+        return maxFree;
+    }
+    /** @deprecated ideal re-pack stats — prefer layoutStats() for chrome. */
     function packStats() { return pack(state.items.map(function (it) { return { id: it.id, wIn: it.wIn, hIn: it.hIn, rotated: false }; }), currentRoll().usableInches, { autoArrange: true, autoRotate: false }); }
 
     /**
@@ -758,38 +809,28 @@
         }
         if (state.appliedGroupKey) { var g = sizeGroups().filter(function (x) { return x.key === state.appliedGroupKey; })[0]; if (g) { bridge.applyDims(g.wIn, g.hIn, state.units); bridge.syncQuantity(g.count); return; } state.appliedGroupKey = null; }
         bridge.syncQuantity(n);
-        var groups = sizeGroups(); if (groups.length === 1) bridge.applyDims(groups[0].wIn, groups[0].hIn, state.units);
+        var groups = sizeGroups();
+        // Always keep a printable size on the form. Mixed gangs still sync the
+        // full quantity so the line matches the whole layout; paper is billed
+        // from laid-out feed (see layoutFeedCmForPricing), not from pretending
+        // every print is this footprint.
+        if (groups.length) bridge.applyDims(groups[0].wIn, groups[0].hIn, state.units);
     }
     /**
      * The roll length this layout should be priced at, in cm — or 0 for "price
      * it by nesting".
      *
-     * These conditions are deliberately identical to
-     * fac_layout_feed_cm_for_state() in includes/layout-images.php. A layout
-     * belongs to the order but the calculator prices one size at a time, so it
-     * may only price a line that unambiguously *is* the whole layout. If the two
-     * sides ever disagree the add-to-cart endpoint rejects the order outright,
-     * so they are kept in lockstep on purpose.
+     * Kept in lockstep with fac_layout_feed_cm_for_state(): when the calculator
+     * quantity equals the number of prints on the roll (the whole gang, any mix
+     * of sizes), bill the feed actually used. Filling a free strip must not
+     * invent extra nesting passes of the largest footprint.
      */
     function layoutFeedCmForPricing() {
         if (!state.items.length) return 0;
-        var groups = sizeGroups();
-        if (groups.length !== 1) return 0;
+        if (!window.__FAC_LAYOUT_PRICING) return 0;
 
         var qty = bridge.readQty();
         if (qty === null || qty !== state.items.length) return 0;
-
-        var wEl = document.getElementById('dimension-width-input');
-        var hEl = document.getElementById('dimension-height-input');
-        if (!wEl || !hEl) return 0;
-        var wIn = fromDisplay(parseFloat(wEl.value), state.units);
-        var hIn = fromDisplay(parseFloat(hEl.value), state.units);
-        if (!isFinite(wIn) || !isFinite(hIn) || wIn <= 0 || hIn <= 0) return 0;
-
-        var g = groups[0];
-        var match = (Math.abs(g.wIn - wIn) < 0.02 && Math.abs(g.hIn - hIn) < 0.02)
-                 || (Math.abs(g.wIn - hIn) < 0.02 && Math.abs(g.hIn - wIn) < 0.02);
-        if (!match) return 0;
 
         return feedUsedIn() * CM_PER_IN;
     }
@@ -907,7 +948,7 @@
         }
         dom.statsWrap.textContent = '';
         if (state.items.length) {
-            var qtyNow = bridge.readQty(), ps = packStats();
+            var qtyNow = bridge.readQty(), ps = layoutStats();
             dom.statsWrap.appendChild(el('div', { className: 'faclp__stats' }, [
                 stat(t('prints'), String(state.items.length), qtyNow === state.items.length ? t('syncedQty') : ''),
                 stat(t('feedUsed'), fmtLen(feedUsedIn(), units, 1),
@@ -1231,7 +1272,7 @@
                 out.push(el('div', { className: 'faclp__notice', role: 'note' }, [svgIcon(ICONS.info, 'faclp__notice-ico'), b]));
             }
         }
-        var ps = packStats();
+        var ps = layoutStats();
         if (state.items.length && ps.maxLeftover >= 4) out.push(notice('info', '', t('leverageTip', { len: fmtLen(ps.maxLeftover, units, 1) })));
         return out;
     }
@@ -1931,5 +1972,5 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
-    window.FACLP = { pack: pack, computeArrange: computeArrange, computeMove: computeMove, computeResize: computeResize, effectivePpi: effectivePpi, toDisplay: toDisplay, fromDisplay: fromDisplay, chooseTickStep: chooseTickStep, groupBounds: groupBounds, computeGroupTranslate: computeGroupTranslate, computeGroupScaleAbout: computeGroupScaleAbout, _state: state, _addItem: addItem };
+    window.FACLP = { pack: pack, layoutStats: layoutStats, maxFreeStripIn: maxFreeStripIn, computeArrange: computeArrange, computeMove: computeMove, computeResize: computeResize, effectivePpi: effectivePpi, toDisplay: toDisplay, fromDisplay: fromDisplay, chooseTickStep: chooseTickStep, groupBounds: groupBounds, computeGroupTranslate: computeGroupTranslate, computeGroupScaleAbout: computeGroupScaleAbout, _state: state, _addItem: addItem };
 })();

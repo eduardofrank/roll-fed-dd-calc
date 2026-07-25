@@ -241,11 +241,14 @@ function fac_artwork_layout_geometry( $manifest = null ) {
 /**
  * The layout length that may price one cart line, in cm — or 0 for none.
  *
- * A layout belongs to the order, not to a line, so it can only price a line
- * that unambiguously *is* the whole layout: one footprint, matching this line's
- * size, and as many prints as the line's quantity. Anything else — a mixed-size
- * layout split across several lines, or the same size added twice — would
- * charge one run of roll two or more times over, so those fall back to nesting.
+ * A layout belongs to the order, not to a line. It prices a line only when that
+ * line's quantity equals the number of prints on the roll — the whole gang,
+ * including mixed sizes. Filling a free strip with smaller prints must not be
+ * billed as extra nesting passes of the largest footprint.
+ *
+ * Size-group checkout (apply 8×12×4, then 2.7×16) uses a quantity that does not
+ * match the full layout count, so those lines fall back to nesting for that
+ * group alone and never double-charge one run of roll.
  *
  * @param array      $state Calculator state.
  * @param array|null $geo   Geometry, or null to read the session.
@@ -258,37 +261,16 @@ function fac_layout_feed_cm_for_state( $state, $geo = null ) {
 
     $geo = null === $geo ? fac_artwork_layout_geometry() : $geo;
 
-    if ( $geo['count'] < 1 || count( $geo['sizes'] ) !== 1 ) {
+    if ( $geo['count'] < 1 ) {
         return 0.0;
     }
 
     $quantity = max( 1, (int) round( floatval( $state['quantity'] ?? 1 ) ) );
-    if ( $geo['count'] !== $quantity ) {
+    if ( (int) $geo['count'] !== $quantity ) {
         return 0.0;
     }
 
-    $units  = ( $state['units'] ?? 'inches' ) === 'centimeters' ? 'centimeters' : 'inches';
-    $width  = floatval( $state['width'] ?? 0 );
-    $height = floatval( $state['height'] ?? 0 );
-    if ( $units === 'centimeters' ) {
-        $width  /= 2.54;
-        $height /= 2.54;
-    }
-
-    $keys  = array_keys( $geo['sizes'] );
-    $parts = explode( 'x', $keys[0] );
-    $lw    = isset( $parts[0] ) ? (float) $parts[0] : 0.0;
-    $lh    = isset( $parts[1] ) ? (float) $parts[1] : 0.0;
-
-    // The planner may have turned a print a quarter, so either way round counts.
-    $matches = ( abs( $lw - $width ) < 0.02 && abs( $lh - $height ) < 0.02 )
-        || ( abs( $lw - $height ) < 0.02 && abs( $lh - $width ) < 0.02 );
-
-    if ( ! $matches ) {
-        return 0.0;
-    }
-
-    return $geo['feedIn'] * 2.54;
+    return (float) $geo['feedIn'] * 2.54;
 }
 
 /**
